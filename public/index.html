@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <audio id="nudge">
+      <source src="./audio/nudge.mp3">
+    </audio>
+    <main>
+      <section id="chat">
+        <div class="bubble" v-for="(item,index) in allMessages" v-bind:key="index">
+          <h4>{{item.user}}</h4>
+          <p>{{item.msg}}</p>
+        </div>
+      </section>
+      <aside id="online">
+        <h4>Online users</h4>
+        <div class="user" v-for="(user,index) in onlineUsers" :key ="index">
+          <img :src="'./images/' + user.avatar + '.jpg'" alt="" @click="nudge(user.id)">
+          <div>
+            <h5>{{user.name}}</h5>
+            <p>{{user.status }}</p>
+          </div>
+        </div>
+      </aside>
+    </main>
+    <section id="type-area">
+      <p v-if="areTyping">Typing: <span v-for="(typer,index) in currentlyTyping" :key="index">{{typer}}</span></p>
+      <div>
+        <input id="input" v-model="inputMessage" type="text" @keyup.enter="sendMessage" @keydown="iAmTyping">
+        <button @click="sendMessage">Send</button>
+      </div>
+    </section>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+
+    var timer;
+
+    var app = new Vue({
+      el:'#app',
+      data() {
+        return {
+          myUsername:'',
+          status:'',
+          onlineUsers:[],
+          inputMessage:'',
+          allMessages:[],
+          currentlyTyping:[],
+          areTyping: false,
+          typingTimer:0
+        }
+      },
+      methods: {
+        validateUsername: function(){
+          this.myUsername = prompt ('What is your username');
+          if(this.myUsername == null || this.myUsername == '' || this.myUsername == ' '){
+            this.validateUsername();
+          }
+        },
+
+        iAmTyping: function(){
+          socket.emit('user-typing',{
+            userTyping: this.myUsername
+          })
+          this.typingTimer = 0;
+          clearInterval(timer)
+
+          timer = setInterval(()=>{
+            this.typingTimer = this.typingTimer + 1;
+            if(this.typingTimer >= 3){
+              socket.emit('user-not-typing',{
+                userNotTyping: this.myUsername
+              })
+              this.typingTimer = 0;
+              clearInterval(timer)
+            } else {
+              this.typingTimer++;
+            }
+          },300)
+        },
+
+        sendMessage: function(){
+          socket.emit('chat-message',{
+            user: this.myUsername,
+            msg: this.inputMessage
+          })
+          this.inputMessage = '';
+
+          var chat = document.getElementById('chat')
+          console.log('scroppTop' + chat.scrollTop)
+          console.log('chat.scrollHeight'+chat.scrollHeight)
+        },
+
+        nudge: function(id){
+          socket.emit('nudge-send',{
+            nudgeUser: id
+          })
+        },
+
+        scrollToBottom: function(){
+          var chat = document.getElementById('chat');
+          if(chat.scrollTop > chat.scrollHeight - chat.clientHeight - 400){ 
+            chat.scrollTop = chat.scrollHeight; 
+          }
+        }
+      },
+      mounted(){
+        this.validateUsername()
+        this.status = prompt('What is on your mind?');
+        document.getElementById('input').focus(); 
+
+        socket.on('connect',(server)=>{
+
+          socket.emit('new-user', {
+            name: this.myUsername,
+            status: this.status
+          })
+
+          socket.on('username-taken',(data)=>{
+            alert('Username ' + data + ' is taken.');
+            this.validateUsername()
+            socket.emit('new-user',{
+              name: this.myUsername, 
+              status: this.status 
+            })
+          })
+
+          socket.on('new-user-online',(data)=>{
+            this.onlineUsers = data
+            console.log(this.onlineUsers) 
+          })
+
+          socket.on('users-typing',(data)=>{
+            this.currentlyTyping = data;
+            if(this.currentlyTyping[0]){
+              this.areTyping = true;
+
+              var length = this.currentlyTyping.length;
+
+              if(length > 1 && length < 5){
+
+                for(var x = 1; x < length; x++){
+                  if(x == length - 1){
+                    this.currentlyTyping[x] = ' & ' + this.currentlyTyping[x]
+                  } else {
+                    this.currentlyTyping[x] = ', ' + this.currentlyTyping[x]
+                  }
+                }
+              } else if(length >= 5) {
+                var answer = length + ' users are typing.'
+                this.currentlyTyping = {answer}
+              }
+
+            } else {
+              this.areTyping = false;
+            }
+            console.log(this.currentlyTyping)
+          })
+
+          socket.on('send-message-all',(data)=>{
+            console.log(data)
+            this.allMessages.push({
+              user: data.user,
+              msg: data.msg
+            });
+          })
+
+          socket.on('nudge-recieve',(data)=>{ 
+            document.getElementById('nudge').play() //favicon.io not found <--- error
+            for(var o = 0; o < this.onlineUsers.length; o++){
+              if(this.onlineUsers[o].id == data.nudgerId){
+                console.log(this.onlineUsers[o].name + ' tells you: HEY !')
+              }
+            }
+          })
+
+        })
+      },
+      updated(){
+        this.scrollToBottom()
+      }
+    })
+  </script>
+</body>
+</html>
