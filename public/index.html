@@ -11,6 +11,9 @@
     <audio id="nudge">
       <source src="./audio/nudge.mp3">
     </audio>
+    <audio id="sentNudge">
+      <source src="./audio/sentNudge.mp3">
+    </audio>
     <main>
       <section id="chat">
         <div class="bubble" v-for="(item,index) in allMessages" v-bind:key="index">
@@ -110,7 +113,7 @@
           socket.emit('nudge-send',{
             nudgeUser: id
           })
-          document.getElementById('nudge').play() //da cujes kad nekom drugom pozvonis pozvonis
+          document.getElementById('sentNudge').play() //da cujes kad nekom drugom pozvonis pozvonis. Stavvi drugi zvuk, bolje bi bilo
         },
 
         scrollToBottom: function(){

@@ -146,6 +146,7 @@ main {
 #type-area input {
   height:30px;
   width: 100%;
+  border:1px solid #333;
 }
 
 #type-area button {
