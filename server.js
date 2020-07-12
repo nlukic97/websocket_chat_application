@@ -16,7 +16,6 @@ var typing = [];
 io.on('connection',(socket)=>{
   // console.log('Socket id: ---------' + socket.id)
   var clientId = socket.id;
-  var imageNum = Math.floor(Math.random()*5+1);
 
   socket.on('new-user',(data)=>{
     var userExists = false; 
@@ -33,7 +32,7 @@ io.on('connection',(socket)=>{
         name: data.name,
         status: data.status,
         id: clientId,
-        avatar: imageNum
+        avatar: data.avatar
       }) 
 
       // console.log(allUsers)
@@ -79,7 +78,7 @@ io.on('connection',(socket)=>{
   })
 
   socket.on('chat-message',(data)=>{
-    // console.log(data)
+    console.log(data)
     io.emit('send-message-all',data)
   })
 
@@ -88,7 +87,8 @@ io.on('connection',(socket)=>{
     var nudgerId = socket.id
     // console.log(data.nudgeUser)
     io.to(data.nudgeUser).emit('nudge-recieve',{
-      nudgerId: nudgerId
+      nudgerId: nudgerId,
+      nudgeUserId: data.nudgeUser
     })
   })
 

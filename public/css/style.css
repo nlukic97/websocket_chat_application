@@ -10,15 +10,17 @@ main {
   box-sizing: border-box;
   width: 100%;
   justify-content: space-between;
-  border:1px solid #333;
+  /* border:1px solid #333; */
 }
 
 #online {
   width:200px;
-  height: auto;
+  height: 100vh; /*promenio sam ovo da bi imao scroll ako ima previse*/
   position: fixed;
   right: 0;
   top:0;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 #online h4 {
@@ -60,6 +62,7 @@ main {
   margin:5px 0 0 5px;
   display: inline;
   font-size: 18px;
+  color:rgb(119, 116, 116);
 }
 
 #online p {
@@ -71,6 +74,7 @@ main {
 #chat {
   width:100%;
   height:100vh;
+  height:calc(100vh - 36px);
   overflow-y: scroll;
   margin-right: 200px;
   padding-bottom: 30px;
@@ -80,10 +84,28 @@ main {
 .bubble {
   margin: 0 0 10px 10px;
   max-width: 80%;
+  /* display: flex; */
+}
+
+.bubble div {
+  display: flex;
+  flex-direction: row;
+  padding-left:4px;
+}
+
+.bubble img {
+  height:30px;
+  width:30px;
+  margin-right: 3px;
+  border-radius: 50%;
+  margin-left:5px;
+  margin: 0 3px 0 5px;
+  border:2px solid green;
+  box-shadow: 0 0 2px rgb(83, 78, 78);
 }
 
 .bubble:last-child {
-  margin-bottom: 50px;
+  margin-bottom: 10px;
 }
 
 #chat p {
@@ -98,7 +120,8 @@ main {
 
 #chat h4 {
   margin:0;
-  padding:5px 0 0 10px;
+  padding:5px 0 4px 10px;
+  color:rgb(119, 116, 116);
 }
 
 #type-area {
@@ -129,3 +152,31 @@ main {
   width:10%;
   min-width: 70px;
 }
+
+@media (max-width:580px){
+  #type-area div {
+    width:100%
+  }
+
+  #online {
+    height: calc(100vh - 36px);
+  }
+}
+
+/* Keyframe and animation */
+.nudge {
+  animation: nudged 0.5s forwards;
+}
+
+@keyframes nudged {
+  0% {transform: rotate(0deg);}
+  14%{transform: rotate(-20deg);}
+  28%{transform: rotate(20deg)}
+  42%{transform: rotate(-20deg)}
+  56%{transform: rotate(20deg)}
+  70%{transform: rotate(-20deg)}
+  84%{transform: rotate(20deg)}
+  100%{transform: rotate(0deg)}
+}
+
+

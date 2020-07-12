@@ -15,12 +15,15 @@
       <section id="chat">
         <div class="bubble" v-for="(item,index) in allMessages" v-bind:key="index">
           <h4>{{item.user}}</h4>
-          <p>{{item.msg}}</p>
+          <div>
+            <img :src="'./images/' + item.avatarMsg + '.jpg'"  alt="">
+            <p>{{item.msg}}</p>
+          </div>
         </div>
       </section>
       <aside id="online">
         <h4>Online users</h4>
-        <div class="user" v-for="(user,index) in onlineUsers" :key ="index">
+        <div class="user" :id="user.name" v-for="(user,index) in onlineUsers" :key ="index">
           <img :src="'./images/' + user.avatar + '.jpg'" alt="" @click="nudge(user.id)">
           <div>
             <h5>{{user.name}}</h5>
@@ -50,6 +53,7 @@
         return {
           myUsername:'',
           status:'',
+          avatarNum:'',
           onlineUsers:[],
           inputMessage:'',
           allMessages:[],
@@ -88,21 +92,25 @@
         },
 
         sendMessage: function(){
-          socket.emit('chat-message',{
+          if(this.inputMessage != ''){
+            socket.emit('chat-message',{
             user: this.myUsername,
-            msg: this.inputMessage
+            msg: this.inputMessage,
+            avatar: this.avatarNum
           })
           this.inputMessage = '';
 
           var chat = document.getElementById('chat')
           console.log('scroppTop' + chat.scrollTop)
           console.log('chat.scrollHeight'+chat.scrollHeight)
+          }
         },
 
         nudge: function(id){
           socket.emit('nudge-send',{
             nudgeUser: id
           })
+          document.getElementById('nudge').play() //da cujes kad nekom drugom pozvonis pozvonis
         },
 
         scrollToBottom: function(){
@@ -113,6 +121,8 @@
         }
       },
       mounted(){
+        this.avatarNum = Math.floor(Math.random()*5+1);
+
         this.validateUsername()
         this.status = prompt('What is on your mind?');
         document.getElementById('input').focus(); 
@@ -121,7 +131,8 @@
 
           socket.emit('new-user', {
             name: this.myUsername,
-            status: this.status
+            status: this.status,
+            avatar: this.avatarNum
           })
 
           socket.on('username-taken',(data)=>{
@@ -134,6 +145,7 @@
           })
 
           socket.on('new-user-online',(data)=>{
+            console.log(data)
             this.onlineUsers = data
             console.log(this.onlineUsers) 
           })
@@ -169,7 +181,8 @@
             console.log(data)
             this.allMessages.push({
               user: data.user,
-              msg: data.msg
+              msg: data.msg,
+              avatarMsg: data.avatar
             });
           })
 
@@ -178,6 +191,17 @@
             for(var o = 0; o < this.onlineUsers.length; o++){
               if(this.onlineUsers[o].id == data.nudgerId){
                 console.log(this.onlineUsers[o].name + ' tells you: HEY !')
+              }
+              
+              if(this.onlineUsers[o].id == data.nudgeUserId){
+                console.log('Nudge user: '+ this.onlineUsers[o].name)
+
+                var id = this.onlineUsers[o].name
+                document.getElementById(id).classList.add('nudge')
+
+                setTimeout(()=>{
+                  document.getElementById(id).classList.remove('nudge')
+                },1200)
               }
             }
           })
