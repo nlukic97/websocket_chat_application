@@ -33,6 +33,8 @@ main {
   margin-bottom: 5px;
   border-bottom: 1px solid rgb(212, 202, 202);
   padding:0 0 5px 0;
+  /* border:1px solid red; */
+  position: relative;
 }
 
 #online .user:last-child {
@@ -52,16 +54,17 @@ main {
 
 #online img:hover {
   cursor: pointer;
-}
-
-#online img:active {
   transform: scale(1.1);
 }
 
+#online img:active {
+  transform: scale(0.99);
+}
+
 #online h5 {
-  margin:5px 0 0 5px;
+  margin:10px 0 0 5px;
   display: inline;
-  font-size: 18px;
+  font-size: 14px;
   color:rgb(119, 116, 116);
 }
 
@@ -109,20 +112,30 @@ main {
 }
 
 .bubble div p {
-/* #chat p { */
   margin:0;
   background-color: #00843D;
   color:#fff;
   border-radius: 15px;
   display: inline-block;
   padding:10px 20px;
-  word-break: break-all; /* importat, remember*/
+  word-break: break-all; /* ----------------- problematic on mobile phones -------*/
 }
 
 .bubble h4 {
   margin:0;
   padding:5px 0 4px 10px;
   color:rgb(119, 116, 116);
+}
+
+.bubble h5 {
+  margin:0;
+  padding:2px 0 4px 10px;
+  color: rgb(88, 125, 219);;
+}
+
+.bubble h5:hover {
+  color:rgb(39, 87, 207);
+  cursor: pointer;
 }
 
 #type-area {
@@ -228,5 +241,23 @@ main {
 
 .bubble.myMessage.privateMsg img {
   border:2px solid red;
+}
+
+#Capa_1 {
+  height:20px;
+  width: auto;
+  padding-right: 5px;
+  position: absolute;
+  right:10px;
+  top:0px;
+}
+
+#Capa_1:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+}
+
+#Capa_1:active {
+  transform: scale(0.96);
 }
 
