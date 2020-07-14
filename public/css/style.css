@@ -108,7 +108,8 @@ main {
   margin-bottom: 10px;
 }
 
-#chat p {
+.bubble div p {
+/* #chat p { */
   margin:0;
   background-color: #00843D;
   color:#fff;
@@ -118,7 +119,7 @@ main {
   word-break: break-all; /* importat, remember*/
 }
 
-#chat h4 {
+.bubble h4 {
   margin:0;
   padding:5px 0 4px 10px;
   color:rgb(119, 116, 116);
@@ -180,4 +181,52 @@ main {
   100%{transform: rotate(0deg)}
 }
 
+/* ---- extra class ----- */
+.bubble.myMessage {
+  margin: 10px 0 10px auto;
+  max-width: 80%;
+  text-align: right;
+}
+
+.bubble.myMessage h4 {
+  padding:5px 10px 4px 0;
+}
+
+.bubble.myMessage div {
+  display: flex;
+  flex-direction: row-reverse;
+  padding-right:4px;
+
+}
+
+.bubble.myMessage  div p {
+  background-color:orange;
+}
+
+.bubble.myMessage img {
+  border-radius: 50%;
+  margin-left:5px;
+  margin: 0 5px 0 3px;
+  border:2px solid orange;
+  box-shadow: 0 0 2px rgb(83, 78, 78);
+}
+
+/*private class - private messsage socket sent to others */
+.bubble.myMessage.private div p {
+  background-color: red;
+}
+
+.bubble.myMessage.private img {
+  border:2px solid red;
+}
+
+
+/*private message to me from one user*/
+.bubble.privateMsg div p {
+  background-color:red;
+}
+
+.bubble.myMessage.privateMsg img {
+  border:2px solid red;
+}
 

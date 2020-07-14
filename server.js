@@ -41,10 +41,19 @@ io.on('connection',(socket)=>{
 
     socket.on('disconnect',(socket)=>{
       console.log('Someone has disconnected', socket)
+      var leftUser = null;
       for(var i = 0; i < allUsers.length; i++){
         if(allUsers[i].id == clientId){ 
+          leftUser = allUsers[i].name;
           allUsers.splice(i,1) 
           io.emit('new-user-online', allUsers)
+        }
+      }
+
+      for (var i = 0; i < typing.length; i++) {
+        if(typing[i] == leftUser){
+          typing.splice(i,1)
+          io.emit('users-typing',typing)
         }
       }
     })
@@ -77,9 +86,32 @@ io.on('connection',(socket)=>{
     io.emit('users-typing',typing)
   })
 
-  socket.on('chat-message',(data)=>{
+  socket.on('chat-message',(data)=>{  
     console.log(data)
     io.emit('send-message-all',data)
+  })
+
+  socket.on('private-chat-message',data=>{
+    console.log(data)
+    for (let i = 0; i < allUsers.length; i++) {
+      if(allUsers[i].name == data.privateTo){
+        io.to(allUsers[i].id).emit('private-message-recieved',{
+          messageFrom: data.privateFrom,
+          messageBody: data.privateWhat,
+          avatar: data.avatar
+        })
+
+        // posaljemo jos jednom poruku za sve da vide, ali samo posiljaocu koji je poslao privatnu poruku (tom socketu.)
+        socket.emit('send-message-all',{ 
+          user: data.privateFrom,
+          msg: data.privateWhat,
+          avatar: data.avatar,
+          privateFromMe: true, //da bi editovali klasu te poruke, crvena sa desne strane
+          recipient: data.privateTo //may be useful to log the recipient of your pm
+        })
+      }
+      
+    }
   })
 
   socket.on('nudge-send',(data)=>{

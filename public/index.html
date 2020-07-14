@@ -16,8 +16,12 @@
     </audio>
     <main>
       <section id="chat">
-        <div class="bubble" v-for="(item,index) in allMessages" v-bind:key="index">
-          <h4>{{item.user}}</h4>
+        <div class="bubble" v-for="(item,index) in allMessages" v-bind:class="styleMessage(item)" v-bind:key="index">
+          <h4>
+            <span v-if="item.private"><em>Private from: </em></span>
+            <span v-if="item.privateFromMe"><em>To {{item.messageTo}}: </em></span>
+            {{item.user}}
+          </h4>
           <div>
             <img :src="'./images/' + item.avatarMsg + '.jpg'"  alt="">
             <p>{{item.msg}}</p>
@@ -68,7 +72,7 @@
       methods: {
         validateUsername: function(){
           this.myUsername = prompt ('What is your username');
-          if(this.myUsername == null || this.myUsername == '' || this.myUsername == ' '){
+          if(this.myUsername == null || this.myUsername == '' || this.myUsername.indexOf(' ') > -1){
             this.validateUsername();
           }
         },
@@ -95,17 +99,49 @@
         },
 
         sendMessage: function(){
-          if(this.inputMessage != ''){
-            socket.emit('chat-message',{
-            user: this.myUsername,
-            msg: this.inputMessage,
-            avatar: this.avatarNum
-          })
-          this.inputMessage = '';
+          if(this.inputMessage.indexOf('/p') == 0 || this.inputMessage.indexOf('/private') == 0 ){
+            var privateType = this.inputMessage.split(' ')[0]
+            var privateReciever = this.inputMessage.split(' ')[1]
+            var privateMessage = this.inputMessage.split(privateType + ' ' + privateReciever + ' ')[1];
+            console.log(privateMessage)
+            if(privateReciever && privateMessage){
+              socket.emit('private-chat-message',{
+                privateFrom: this.myUsername,
+                privateTo: privateReciever,
+                privateWhat: privateMessage,
+                avatar: this.avatarNum
+              });
 
-          var chat = document.getElementById('chat')
-          console.log('scroppTop' + chat.scrollTop)
-          console.log('chat.scrollHeight'+chat.scrollHeight)
+            }
+            
+          } else {
+            if(this.inputMessage != ''){
+              socket.emit('chat-message',{
+              user: this.myUsername,
+              msg: this.inputMessage,
+              avatar: this.avatarNum
+            })
+
+
+            var chat = document.getElementById('chat')
+            // console.log('scroppTop' + chat.scrollTop)
+            // console.log('chat.scrollHeight'+chat.scrollHeight)
+            }
+          }
+          this.inputMessage = '';
+        },
+
+        styleMessage: function(item){
+          if(item.user == this.myUsername && item.privateFromMe == true){
+            return 'myMessage private';
+          } else if(item.user == this.myUsername ){
+            return 'myMessage';
+          }else {
+            if(item.private == true){
+              return 'privateMsg';
+            } else {
+              return '';
+            }
           }
         },
 
@@ -148,9 +184,9 @@
           })
 
           socket.on('new-user-online',(data)=>{
-            console.log(data)
+            // console.log(data)
             this.onlineUsers = data
-            console.log(this.onlineUsers) 
+            // console.log(this.onlineUsers) 
           })
 
           socket.on('users-typing',(data)=>{
@@ -177,27 +213,47 @@
             } else {
               this.areTyping = false;
             }
-            console.log(this.currentlyTyping)
+            // console.log(this.currentlyTyping)
+          })
+
+          socket.on('private-message-recieved',data=>{
+            this.allMessages.push({
+              user: data.messageFrom,
+              msg: data.messageBody,
+              avatarMsg: data.avatar,
+              private: true
+            })
           })
 
           socket.on('send-message-all',(data)=>{
             console.log(data)
-            this.allMessages.push({
-              user: data.user,
-              msg: data.msg,
-              avatarMsg: data.avatar
-            });
+
+            if(data.privateFromMe){
+              this.allMessages.push({
+                user: data.user,
+                msg: data.msg,
+                avatarMsg: data.avatar,
+                privateFromMe: data.privateFromMe,
+                messageTo: data.recipient
+              });
+            }else {
+              this.allMessages.push({
+                user: data.user,
+                msg: data.msg,
+                avatarMsg: data.avatar
+              });
+            }
           })
 
           socket.on('nudge-recieve',(data)=>{ 
             document.getElementById('nudge').play() //favicon.io not found <--- error
             for(var o = 0; o < this.onlineUsers.length; o++){
               if(this.onlineUsers[o].id == data.nudgerId){
-                console.log(this.onlineUsers[o].name + ' tells you: HEY !')
+                // console.log(this.onlineUsers[o].name + ' tells you: HEY !')
               }
               
               if(this.onlineUsers[o].id == data.nudgeUserId){
-                console.log('Nudge user: '+ this.onlineUsers[o].name)
+                // console.log('Nudge user: '+ this.onlineUsers[o].name)
 
                 var id = this.onlineUsers[o].name
                 document.getElementById(id).classList.add('nudge')
