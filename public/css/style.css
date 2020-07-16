@@ -118,7 +118,9 @@ main {
   border-radius: 15px;
   display: inline-block;
   padding:10px 20px;
-  word-break: break-all; /* ----------------- problematic on mobile phones -------*/
+  /* word-break: break-all; ----------------- problematic on mobile phones ------- */
+  overflow-wrap: break-word;
+  max-width: 150px; /*prilagodi sirinu p da zna koja je granica*/
 }
 
 .bubble h4 {
