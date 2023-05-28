@@ -41,7 +41,35 @@ const app = new Vue({
                 } else {
                     this.typingTimer++;
                 }
-            },2000) //TODO change to 300
+            },3000) //TODO change to 300
+        },
+
+
+        /// @notice Used to get the message to be shown for users who are typing
+        getTypingMsg: function(typingUsers){
+            console.log("typing users:")
+            console.log(typingUsers);
+            const length = typingUsers.length
+
+            if(length <= 0) return null;
+            if(length == 1) return typingUsers[0].name
+
+            if(length > 1 && length < 5){      
+                var typingMsg = "";
+
+                typingUsers.forEach((typer,index)=>{
+                    if(index == length - 1){
+                        typingMsg += ' & ' + typer.name
+                    } else if(index == 0){
+                        typingMsg += typer.name
+                    } else {
+                        typingMsg += ', ' + typer.name
+                    }
+                })
+                return typingMsg;
+            }
+            
+            if(length >= 5) return length + ' users are typing.'
         },
         
         /// @notice used to send a message
@@ -145,44 +173,10 @@ const app = new Vue({
                 console.log('who is typing');
                 console.log(data)
                 this.currentlyTyping = data;
-                var length = this.currentlyTyping.length;
-                
-                if(length <= 0){
-                    this.areTyping = false;
-                    this.typingMessage = null;
-                    return
-                }
-                
-                this.areTyping = true;
 
-                // Constructing the typing message
-                if(length == 1){
-                    this.typingMessage = this.currentlyTyping[0].name
-                    return
-                }
-
-                if(length > 1 && length < 5){      
-                    var typingMsg = "";
-
-                    this.currentlyTyping.forEach((typer,index)=>{
-                        if(index == length - 1){
-                            typingMsg += ' & ' + typer.name
-                        } else if(index == 0){
-                            typingMsg += typer.name
-                        } else {
-                            typingMsg += ', ' + typer.name
-                        }
-                    })
-                    this.typingMessage = typingMsg;
-                    return
-                }
+                this.areTyping = this.currentlyTyping.length <= 0 ? false : true;
                 
-                // otherwise, just say how many users are typing
-                if(length >= 5) {
-                    this.typingMessage = length + ' users are typing.' 
-                    return
-                }
-                
+                this.typingMessage = this.getTypingMsg(this.currentlyTyping)
                 
             })
             

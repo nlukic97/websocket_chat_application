@@ -17,9 +17,10 @@ http.listen(port,function(){
 var allUsers = []; 
 var typing = [];
 
-io.on('connection',(socket)=>{  
+io.on('connection',(socket)=>{
+
+  /// @notice When a new user connets
   socket.on('new-user',(data)=>{   
-    console.log('A new user joined - ' + data.name + ' ' + socket.id);
     allUsers.push({
       name: data.name,
       id: socket.id,
@@ -27,13 +28,10 @@ io.on('connection',(socket)=>{
     }) 
     
     io.emit('new-user-online', allUsers)
-    console.log(this)
-    
   })
   
-  socket.on('disconnect',()=>{
-    console.log('Someone has disconnected', socket.id)
-    
+  /// @notice When a user disconnects
+  socket.on('disconnect',()=>{    
     allUsers = allUsers.filter(user=> user.id === socket.id)
     io.emit('new-user-online', allUsers)
     
@@ -41,37 +39,35 @@ io.on('connection',(socket)=>{
     io.emit('users-typing',typing)
   })
   
-  
+  /// @notice When a user types something into the chatbox, give participants a list of users who are currently typing
   socket.on('user-typing',()=>{
-    var isAlreadyTyping = typing.some(user => user.id == socket.id);
     var user = allUsers.find(user => user.id == socket.id)
+    var isAlreadyTyping = typing.some(user => user.id == socket.id);
     
-    // If user with socketId exist, and they aren't already in the typing array, add them to typing array and emmit to clients
+    // add typers who exist as users and are not already in the typing array
     if(user && isAlreadyTyping == false) {
       typing.push({
         id: socket.id,
         name: user.name
       })
-      io.emit('users-typing',typing)
     }
+
+    io.emit('users-typing',typing) // TODO should this be here or inside the if statement?
   })
   
+  /// @notice Emmited when a user hasn't typed after some time elapses
   socket.on('user-not-typing',()=>{
-    typing = typing.filter(typer => typer.id !== socket.id)
-    
-    console.log('typing')
-    console.log(typing)
-    
+    typing = typing.filter(typer => typer.id !== socket.id)   
     io.emit('users-typing',typing)
   })
   
+  /// @notice When a user sends a chat message, sent it to everyone else
   socket.on('chat-message',(data)=>{  
-    console.log(data)
     io.emit('send-message-all',data)
   })
   
+  /// @notice when a user sends someone a private chat message
   socket.on('private-chat-message',data=>{
-    console.log(data)
     for (let i = 0; i < allUsers.length; i++) {
       if(allUsers[i].name == data.privateTo){
         io.to(allUsers[i].id).emit('private-message-recieved',{
@@ -85,7 +81,7 @@ io.on('connection',(socket)=>{
           user: data.privateFrom,
           msg: data.privateWhat,
           avatar: data.avatar,
-          privateFromMe: true, //da bi editovali klasu te poruke, crvena sa desne strane
+          privateFromMe: true, //da bi editovali klasu te poruke, crvena sa desne strane // TODO what is this for?
           recipient: data.privateTo //may be useful to log the recipient of your pm
         })
       }
@@ -93,11 +89,10 @@ io.on('connection',(socket)=>{
     }
   })
   
+  /// @notice When a user nudges another user
   socket.on('sendNudge',(data)=>{
-    var nudgerId = socket.id
-    // console.log(data.nudgeUser)
     io.to(data.nudgeUser).emit('nudged',{
-      nudgerId: nudgerId,
+      nudgerId: socket.id,
       nudgeUserId: data.nudgeUser
     })
   })
