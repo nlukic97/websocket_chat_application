@@ -49,10 +49,7 @@
       </aside>
     </main>
     <section id="type-area">
-      <p v-if="areTyping">Typing: 
-        <!-- <span v-for="(typer,index) in currentlyTyping" :key="index">
-          {{typer}}
-        </span> -->
+      <p v-if="this.typingMessage !== null">Typing:
         <span>
           {{this.typingMessage}}
         </span>
