@@ -1,0 +1,5 @@
+Things to improve:
+- replace for loops with .forEach, .find, or .exists methods
+- Disable validation for username
+- use a socket ID for identifying users rather than the username
+- fix the logic for getting a username, perhaps make a box of some kind or something like that
