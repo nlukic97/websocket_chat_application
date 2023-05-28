@@ -50,8 +50,11 @@
     </main>
     <section id="type-area">
       <p v-if="areTyping">Typing: 
-        <span v-for="(typer,index) in currentlyTyping" :key="index">
+        <!-- <span v-for="(typer,index) in currentlyTyping" :key="index">
           {{typer}}
+        </span> -->
+        <span>
+          {{this.typingMessage}}
         </span>
       </p>
       <div>

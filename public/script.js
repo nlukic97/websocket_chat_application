@@ -28,24 +28,20 @@ const app = new Vue({
         /// @dev Upon typing a message, will tell server that a user is typing. 
         /// After 3 seconds since typing has stopped, the client will emit an event informing server they have stopped typing.
         iAmTyping: function(){
-            this.socket.emit('user-typing',{
-                userTyping: this.myUsername
-            })
+            this.socket.emit('user-typing')
             this.typingTimer = 0;
             clearInterval(this.timer)
             
             this.timer = setInterval(()=>{
                 this.typingTimer = this.typingTimer + 1;
                 if(this.typingTimer >= 3){
-                    this.socket.emit('user-not-typing',{
-                        userNotTyping: this.myUsername
-                    })
+                    this.socket.emit('user-not-typing')
                     this.typingTimer = 0;
                     clearInterval(this.timer)
                 } else {
                     this.typingTimer++;
                 }
-            },300)
+            },2000) //TODO change to 300
         },
         
         /// @notice used to send a message
@@ -125,7 +121,7 @@ const app = new Vue({
         this.avatarNum = Math.floor(Math.random() * 5 + 1);
         
         this.getUsername()
-        document.getElementById('input').focus(); 
+        // document.getElementById('input').focus(); 
         
         this.socket.on('connect',()=>{
             this.socket.emit('new-user', {
@@ -133,42 +129,61 @@ const app = new Vue({
                 avatar: this.avatarNum
             })
             
-            this.socket.on('username-taken',(data)=>{
+            /* this.socket.on('username-taken',(data)=>{
                 alert('Username ' + data + ' is taken.');
                 this.getUsername()
                 this.socket.emit('new-user',{
                     name: this.myUsername, 
                 })
-            })
+            }) */
             
             this.socket.on('new-user-online',(data)=>{
                 this.onlineUsers = data
             })
             
-            this.socket.on('users-typing',(data)=>{
+            this.socket.on('users-typing',(data)=>{ //TODO check that there aren't multiple additions, you have "undefined" 
+                console.log('who is typing');
+                console.log(data)
                 this.currentlyTyping = data;
-                if(this.currentlyTyping[0]){
-                    this.areTyping = true;
-                    
-                    var length = this.currentlyTyping.length;
-                    
-                    if(length > 1 && length < 5){
-                        
-                        for(var x = 1; x < length; x++){
-                            if(x == length - 1){
-                                this.currentlyTyping[x] = ' & ' + this.currentlyTyping[x]
-                            } else {
-                                this.currentlyTyping[x] = ', ' + this.currentlyTyping[x]
-                            }
-                        }
-                    } else if(length >= 5) {
-                        var answer = length + ' users are typing.'
-                        this.currentlyTyping = {answer}
-                    }
-                    
-                } else {
+                var length = this.currentlyTyping.length;
+                
+                if(length <= 0){
                     this.areTyping = false;
+                    this.typingMessage = null;
+                    return
                 }
+                
+                this.areTyping = true;
+
+                // Constructing the typing message
+                if(length == 1){
+                    this.typingMessage = this.currentlyTyping[0].name
+                    return
+                }
+
+                if(length > 1 && length < 5){      
+                    var typingMsg = "";
+
+                    this.currentlyTyping.forEach((typer,index)=>{
+                        if(index == length - 1){
+                            typingMsg += ' & ' + typer.name
+                        } else if(index == 0){
+                            typingMsg += typer.name
+                        } else {
+                            typingMsg += ', ' + typer.name
+                        }
+                    })
+                    this.typingMessage = typingMsg;
+                    return
+                }
+                
+                // otherwise, just say how many users are typing
+                if(length >= 5) {
+                    this.typingMessage = length + ' users are typing.' 
+                    return
+                }
+                
+                
             })
             
             this.socket.on('private-message-recieved',data=>{
