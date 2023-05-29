@@ -32,11 +32,11 @@ const app = new Vue({
             if(this.typingTimer === -1){
                 this.socket.emit('user-typing')
             }
-
+            
             // Everytime the user types again, reset the counter to 0
             this.typingTimer = 0;
             clearInterval(this.timer)
-
+            
             this.timer = setInterval(()=>{
                 this.typingTimer = this.typingTimer + 1;
                 if(this.typingTimer >= 3){
@@ -48,7 +48,32 @@ const app = new Vue({
                 }
             },300)
         },
-
+        
+        formatTypingStatus: function(usersWhoAreTyping = []){
+            const length = usersWhoAreTyping.length
+            
+            if(length <= 0) return null;
+            if(length == 1) return usersWhoAreTyping[0].name;
+            
+            if(length > 1 && length < 5){      
+                var typingMsg = "";
+                
+                usersWhoAreTyping.forEach((user,index)=>{
+                    if(index == 0){
+                        typingMsg += user.name
+                    } else if(index == length - 1){
+                        typingMsg += ' & ' + user.name
+                    } else {
+                        typingMsg += ', ' + user.name
+                    }
+                })
+                
+                return typingMsg;
+            }
+            
+            if(length >= 5) return length + ' users are typing.';
+        },
+        
         /// @notice used to send a message
         /// @dev could be a public message, but also a private message
         sendMessage: function(){
@@ -134,62 +159,13 @@ const app = new Vue({
                 avatar: this.avatarNum
             })
             
-            /* this.socket.on('username-taken',(data)=>{
-                alert('Username ' + data + ' is taken.');
-                this.getUsername()
-                this.socket.emit('new-user',{
-                    name: this.myUsername, 
-                })
-            }) */
-            
             this.socket.on('new-user-online',(data)=>{
                 this.onlineUsers = data
             })
             
-            this.socket.on('users-typing',(data)=>{ //TODO check that there aren't multiple additions, you have "undefined" 
+            this.socket.on('users-typing',(data)=>{ 
                 this.currentlyTyping = data;
-                
-                console.log('who is typing');
-                console.log(this.currentlyTyping)
-
-                const length = this.currentlyTyping.length
-
-                console.log('initialValtypingMsg: ' + this.typingMessage)
-                if(length <= 0) {
-                    this.typingMessage = null
-                    return
-                }
-
-                if(length == 1) {
-                    this.typingMessage = this.currentlyTyping[0].name
-                    console.log('typingMsg: ' + this.typingMessage)
-                    return
-                }
-
-                if(length > 1 && length < 5){      
-                    var typingMsg = "";
-
-                    this.currentlyTyping.forEach((user,index)=>{
-                        if(index == 0){
-                            typingMsg += user.name
-                        } else if(index == length - 1){
-                            typingMsg += ' & ' + user.name
-                        } else {
-                            typingMsg += ', ' + user.name
-                        }
-                    })
-
-                    this.typingMessage = typingMsg;
-                    console.log('typingMsg: ' + this.typingMessage)
-                    return
-                }
-                
-                if(length >= 5){
-                    this.typingMessage = length + ' users are typing.'
-                    console.log('typingMsg: ' + this.typingMessage)
-                    return
-                }
-                
+                this.typingMessage = this.formatTypingStatus(this.currentlyTyping)            
             })
             
             this.socket.on('private-message-recieved',data=>{
